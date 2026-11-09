@@ -84,7 +84,7 @@
   const files=['bike-side','tank','iron-harvest','seat','scars','bike-front'];
   const frames=files.map((file,index)=>{
     const frame=document.createElement('div');frame.className='stream-frame';
-    const img=document.createElement('img');img.src=`https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v6/assets/${file}.webp`;img.alt='';img.loading='lazy';img.decoding='async';img.draggable=false;frame.append(img);rails.append(frame);
+    const img=document.createElement('img');img.src=`https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v7/assets/${file}.webp`;img.alt='';img.loading='lazy';img.decoding='async';img.draggable=false;frame.append(img);rails.append(frame);
     return {frame,side:index%2?-1:1,offset:Math.floor(index/2)/3};
   });
   function drawStream(t){frames.forEach(({frame,side,offset})=>{
