@@ -15,6 +15,8 @@
   let player;
   let fallbackActive = false;
   let ready = false;
+  const playIcon = '<svg class="ui-icon ui-icon--play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5 20 12 7 19.5Z"/></svg>';
+  const pauseIcon = '<svg class="ui-icon ui-icon--pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14m8-14v14"/></svg>';
 
   function fallback() {
     if (fallbackActive || ready) return;
@@ -51,6 +53,7 @@
       if (fallbackActive) return;
       clearTimeout(loadTimeout);
       ready = true;
+      overlay.classList.remove('is-loading');
       shell.dataset.player = 'custom';
       player.controls(false);
       transport.hidden = false;
@@ -66,7 +69,7 @@
         time.value = `${formatTime(current)} / ${formatTime(duration)}`;
         const playing = !player.paused() && !player.ended();
         shell.classList.toggle('is-playing', playing);
-        toggle.textContent = playing ? 'Ⅱ' : '▶';
+        toggle.innerHTML = playing ? pauseIcon : playIcon;
         toggle.setAttribute('aria-label', playing ? 'Pausar vídeo' : 'Reproduzir vídeo');
         overlay.setAttribute('aria-label', player.ended() ? 'Rever vídeo do acidente' : 'Reproduzir vídeo do acidente');
         mute.textContent = player.muted() ? 'SOM OFF' : 'SOM ON';

@@ -3,7 +3,7 @@
 const garageSection = document.querySelector('.garage');
 if (garageSection) {
   const activate = garageSection.querySelector('.garage__activate');
-  const load = () => import('https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v5/garage.js').catch((error) => {
+  const load = () => import('https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v6/garage.js').catch((error) => {
     garageSection.querySelector('.garage__loading').textContent = 'O 3D não abriu neste aparelho. Veja as fotos reais abaixo.';
     activate.disabled = false;
     console.warn('Falha ao carregar o 3D:', error.message);

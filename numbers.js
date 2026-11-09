@@ -28,6 +28,7 @@
   const firstNumber = 0;
   const lastNumber = total - 1;
   const formatNumber = (value) => String(value).padStart(3, '0');
+  const arrowIcon = '<svg class="ui-icon ui-icon--arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 19 19 5M7 5h12v12"/></svg>';
   let page = 0;
   const selected = new Set();
   const selectedList = document.createElement('div');
@@ -86,9 +87,9 @@
       fragment.append(chip);
     }
     selectedList.replaceChildren(fragment);
-    buy.textContent = selected.size > 1
-      ? `IR AO CHECKOUT · R$ ${selected.size * 179} ↗`
-      : 'COMPRAR BONÉ · R$ 179 ↗';
+    buy.innerHTML = selected.size > 1
+      ? `IR AO CHECKOUT · R$ ${selected.size * 179} ${arrowIcon}`
+      : `COMPRAR BONÉ · R$ 179 ${arrowIcon}`;
   }
 
   function updateSelectionMessage() {

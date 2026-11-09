@@ -11,13 +11,14 @@
     const script = document.createElement('script');
     script.src = 'https://players.brightcove.net/6415858730001/default_default/index.min.js';
     script.async = true;
-    script.onload = script.onerror = () => import('https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v5/story-video.js');
+    script.onload = script.onerror = () => import('https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v6/story-video.js');
     document.head.append(script);
   }
 
   overlay.addEventListener('click', () => {
     shell.dataset.autoplay = 'true';
-    overlay.querySelector('small').textContent = 'CARREGANDO O VÍDEO…';
+    overlay.classList.add('is-loading');
+    overlay.setAttribute('aria-label', 'Carregando vídeo do acidente');
     loadPlayer();
   }, { once: true });
 

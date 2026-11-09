@@ -4,11 +4,13 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let paused = reduced;
   const pauseButton = document.querySelector('.motion-toggle');
+  const playIcon = '<svg class="ui-icon ui-icon--play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5 20 12 7 19.5Z"/></svg>';
+  const pauseIcon = '<svg class="ui-icon ui-icon--pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14m8-14v14"/></svg>';
   pauseButton.addEventListener('click', () => {
     paused = !paused;
     document.body.classList.toggle('effects-paused', paused);
     pauseButton.setAttribute('aria-pressed', String(paused));
-    pauseButton.innerHTML = paused ? 'RETOMAR EFEITOS <span>▷</span>' : 'PAUSAR EFEITOS <span>Ⅱ</span>';
+    pauseButton.innerHTML = paused ? `RETOMAR EFEITOS <span>${playIcon}</span>` : `PAUSAR EFEITOS <span>${pauseIcon}</span>`;
     window.dispatchEvent(new CustomEvent('effects-toggle', { detail: { paused } }));
   });
   if (reduced) document.body.classList.add('effects-paused');
@@ -82,7 +84,7 @@
   const files=['bike-side','tank','iron-harvest','seat','scars','bike-front'];
   const frames=files.map((file,index)=>{
     const frame=document.createElement('div');frame.className='stream-frame';
-    const img=document.createElement('img');img.src=`https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v5/assets/${file}.webp`;img.alt='';img.loading='lazy';img.decoding='async';img.draggable=false;frame.append(img);rails.append(frame);
+    const img=document.createElement('img');img.src=`https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v6/assets/${file}.webp`;img.alt='';img.loading='lazy';img.decoding='async';img.draggable=false;frame.append(img);rails.append(frame);
     return {frame,side:index%2?-1:1,offset:Math.floor(index/2)/3};
   });
   function drawStream(t){frames.forEach(({frame,side,offset})=>{
