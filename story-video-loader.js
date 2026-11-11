@@ -11,7 +11,7 @@
     const script = document.createElement('script');
     script.src = 'https://players.brightcove.net/6415858730001/default_default/index.min.js';
     script.async = true;
-    script.onload = script.onerror = () => import('https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v8/story-video.js');
+    script.onload = script.onerror = () => import('https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v9/story-video.js');
     document.head.append(script);
   }
 
