@@ -1,6 +1,3 @@
-document.body.classList.add('is-loading');
-if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-window.scrollTo(0, 0);
 const openInitialSection = () => {
   const section = document.getElementById(location.hash.slice(1));
   if (section) section.scrollIntoView({ behavior: 'instant', block: 'start' });
@@ -8,69 +5,14 @@ const openInitialSection = () => {
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const mobileIntro = window.matchMedia('(max-width: 700px)').matches;
-const introVideo = document.querySelector('.intro__video');
-let skipRequested=false;
-document.querySelector('.intro__skip')?.addEventListener('click',()=>{skipRequested=true;});
 
 async function initMotion() {
-  window.scrollTo(0, 0);
   if (reduceMotion || !window.gsap || !window.ScrollTrigger) {
     document.body.classList.add('no-motion');
-    document.body.classList.remove('is-loading');
-    document.querySelector('.intro')?.remove();
-    document.querySelectorAll('.title-line i').forEach((line) => { line.style.transform = 'none'; });
-    setTimeout(openInitialSection, 200);
+    requestAnimationFrame(openInitialSection);
     return;
   }
   gsap.registerPlugin(ScrollTrigger);
-  let introFinished = false;
-  let introScene;
-
-  const finishIntro = (quick = false) => {
-    if (introFinished) return;
-    introFinished = true;
-    window.introHasEnded=true;
-    introScene?.kill();
-    introVideo?.pause();
-    window.scrollTo(0, 0);
-    document.body.classList.remove('is-loading');
-
-    gsap.timeline({
-      onComplete: () => {
-        gsap.set('.intro', { display: 'none' });
-        ScrollTrigger.refresh();
-        setTimeout(openInitialSection, 200);
-      }
-    })
-      .to('.intro', { yPercent: -100, duration: quick ? .48 : .88, ease: 'power4.inOut' })
-      .to('.title-line i', { y: 0, duration: 1.05, stagger: .12, ease: 'power4.out' }, '-=.34')
-      .from('.reveal-up', { y: 34, opacity: 0, duration: .75, stagger: .1, ease: 'power3.out' }, '-=.7')
-      .from('.hero__photo--main', { clipPath: 'polygon(7% 48%,100% 48%,100% 52%,93% 52%,0 52%,0 48%)', duration: 1.05, ease: 'power4.inOut' }, '-=.9');
-  };
-
-  document.querySelector('.intro__loading')?.remove();
-  if (!introVideo || skipRequested) finishIntro(true);
-  else {
-    introVideo.preload = 'auto';
-    introVideo.play().catch(() => {});
-    introScene = gsap.timeline({ onComplete: () => finishIntro(false) });
-    introScene
-      .from('.intro__meta, .intro__logo, .intro__skip', { opacity: 0, y: -12, duration: .5, stagger: .08 }, 0)
-      .to('.intro__scene', { x: -7, duration: .05, repeat: 7, yoyo: true, ease: 'none' }, 2.36)
-      .fromTo('.intro__impact', { opacity: 0, scale: .1 }, { opacity: 1, scale: 1.5, duration: .22, ease: 'power2.out' }, 2.36)
-      .to('.intro__impact', { opacity: 0, scale: 4, duration: .5 }, 2.57)
-      .fromTo('.intro__dust', { opacity: 0, scale: .2 }, { opacity: 1, scale: 1.25, duration: .3 }, 2.33)
-      .to('.intro__dust i', { x: () => gsap.utils.random(-260, 280), y: () => gsap.utils.random(-180, 90), opacity: 0, duration: .75, stagger: .025, ease: 'power2.out' }, 2.38)
-      .to('.intro__scene, .intro__meta, .intro__logo', { opacity: 0, duration: .56, ease: 'power2.in' }, 4.4)
-      .to('.intro__statement', { opacity: 1, duration: .35 }, 4.62)
-      .from('.intro__statement > span', { y: 20, opacity: 0, duration: .45, ease: 'power3.out' }, 4.64)
-      .from('.intro__statement strong', { y: 72, opacity: 0, clipPath: 'inset(100% 0 0 0)', duration: .85, ease: 'power4.out' }, 4.66)
-      .from('.intro__statement small', { opacity: 0, y: 14, duration: .48 }, 5.08)
-      .to('.intro__statement strong em', { textShadow: '0 0 42px rgba(255,90,0,.7)', duration: .22, repeat: 1, yoyo: true }, 5.45)
-      .to({}, { duration: .7 });
-  }
-
-  document.querySelector('.intro__skip')?.addEventListener('click', () => finishIntro(true));
 
   gsap.to('.progress i', {
     width: '100%', ease: 'none',
@@ -155,6 +97,7 @@ async function initMotion() {
   });
 
   ScrollTrigger.refresh();
+  requestAnimationFrame(openInitialSection);
 }
 
 let motionStarted = false;
@@ -166,5 +109,3 @@ function startMotion() {
 if (document.readyState === 'complete') startMotion();
 else document.addEventListener('DOMContentLoaded', startMotion, { once: true });
 window.addEventListener('load', startMotion, { once: true });
-// A third-party video or font request must not trap visitors behind the intro.
-setTimeout(startMotion, 5000);

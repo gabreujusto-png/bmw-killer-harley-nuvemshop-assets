@@ -20,7 +20,7 @@ async function loadGarage(){
     const key=new THREE.DirectionalLight(0xffe5d2,3);key.position.set(3,5,4);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-3;key.shadow.camera.right=3;key.shadow.camera.top=3;key.shadow.camera.bottom=-3;key.shadow.normalBias=.025;scene.add(key);
     const rim=new THREE.DirectionalLight(0xff6a16,2);rim.position.set(-3,3,-3);scene.add(rim);
     camera=new THREE.PerspectiveCamera(35,1,.05,100);
-    model=refineHarley(await loadModel('https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v7/assets/harley-generated.glb',3.8),3.8);scene.add(model);
+    model=refineHarley(await loadModel('https://cdn.jsdelivr.net/gh/gabreujusto-png/bmw-killer-harley-nuvemshop-assets@native-v8/assets/harley-generated.glb',3.8),3.8);scene.add(model);
     const bounds=new THREE.Box3().setFromObject(model);const size=bounds.getSize(new THREE.Vector3());
     // Low showroom plinth. Its top sits directly beneath the tires.
     const plinth=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.22,.12,128),new THREE.MeshStandardMaterial({color:0x171719,metalness:.5,roughness:.48}));

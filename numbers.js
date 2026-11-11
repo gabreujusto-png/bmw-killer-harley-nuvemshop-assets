@@ -117,7 +117,6 @@
   function activateLiveCopy() {
     document.title = 'Boné Harlão do Agro + Harley Iron Harvest | BMW KILLER';
     document.querySelector('meta[name="description"]').content = 'Compre o boné Harlão do Agro por R$ 179, escolha seu número e concorra à Harley Iron Harvest reconstruída pela BMW Killer.';
-    document.querySelector('.intro__statement small').textContent = 'NA COMPRA DO BONÉ HARLÃO DO AGRO · BMW KILLER';
     document.querySelector('.hero__lead').textContent = 'Compre o boné Harlão do Agro por R$ 179, escolha seu número e concorra à Iron Harvest após a confirmação do pagamento na Nuvemshop.';
     document.querySelector('.hero__action').firstChild.textContent = 'ESCOLHER BONÉ + NÚMERO ';
     document.querySelector('.hero__availability').textContent = 'NÚMEROS DE 000 A 999 · COMPRA NA NUVEMSHOP';
@@ -131,7 +130,7 @@
     root.querySelector('.numbers__steps > div:nth-child(3) span').textContent = 'Finalize o pedido e aguarde a confirmação do pagamento.';
     root.querySelector('.numbers__price small').textContent = 'POR BONÉ · CHECKOUT NUVEMSHOP';
     root.querySelector('.numbers__product-copy > small').textContent = 'O número escolhido aparece como variação do boné no seu pedido.';
-    root.querySelector('.numbers__browse p').textContent = 'Toque nos números para adicioná-los ou removê-los. Os riscados estão indisponíveis.';
+    root.querySelector('.numbers__browse p').textContent = 'Toque nos números para adicioná-los ou removê-los. Contorno e X vermelho indicam indisponibilidade.';
     root.querySelector('.numbers__fineprint').textContent = 'O carrinho não reserva estoque. Se outra pessoa finalizar antes, escolha outro número.';
     if (certificate && regulationUrl) {
       root.querySelector('.numbers__legal strong').textContent = `Certificado de Autorização nº ${certificate}`;

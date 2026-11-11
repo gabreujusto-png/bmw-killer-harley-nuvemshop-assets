@@ -53,7 +53,7 @@
 .numbers__chosen-list { display: flex; flex-wrap: wrap; gap: 8px; max-width: 420px; margin-top: 10px; }
 .numbers__chosen-list button { min-height: 38px; padding: 6px 10px; border: 1px solid var(--orange); background: #23160d; color: #f5e6d9; font: 400 21px/1 "Bebas Neue",sans-serif; cursor: pointer; }
 .numbers__chosen-list button:hover { background: var(--orange); color: #090909; }
-.numbers__chosen-list button[data-unavailable="true"] { border-color: #85624e; color: #bca795; text-decoration: line-through; }
+.numbers__chosen-list button[data-unavailable="true"] { border: 2px solid #f04438; background: #260d0d; color: #f5c2bd; text-decoration: line-through; }
 .numbers__chosen-list button:disabled { opacity: .6; cursor: wait; }
 .numbers__selection > div:first-child span { color: #e8c2a4; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
 .numbers__selection strong { color: var(--orange); font: 400 88px/.85 "Bebas Neue",sans-serif; }
@@ -74,9 +74,10 @@
 .numbers__grid button:hover { border-color: var(--orange); background: #38200f; color: #fff; }
 .numbers__grid button[aria-pressed="true"] { border-color: var(--orange); background: var(--orange); color: #090909; }
 .numbers__grid button:disabled { border-color: #362e29; background: #0b0a09; color: #756e68; cursor: not-allowed; }
-.numbers__grid button[data-availability="unavailable"] { border-color: #493a32; background: #100e0c; color: #a8988b; text-decoration: line-through; }
+.numbers__grid button[data-availability="unavailable"] { position: relative; border: 2px solid #f04438; background: #260d0d; color: #f5c2bd; text-decoration: line-through; cursor: not-allowed; }
+.numbers__grid button[data-availability="unavailable"]::after { content: ""; position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; background: linear-gradient(45deg, transparent 42%, #ff6156 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, #ff6156 42% 58%, transparent 58%); filter: drop-shadow(0 0 2px #000); pointer-events: none; }
 .numbers__grid button[data-availability="unavailable"]:hover,
-.numbers__grid button[data-availability="unavailable"][aria-pressed="true"] { border-color: #a16d4a; background: #2b1e16; color: #e0c8b6; }
+.numbers__grid button[data-availability="unavailable"][aria-pressed="true"] { border-color: #ff6156; background: #320f0f; color: #f5c2bd; }
 .numbers__selection-copy .numbers__buy:not(:disabled) { border-color: var(--orange); background: var(--orange); color: #080808; cursor: pointer; font-size: 14px; }
 .numbers__selection-copy .numbers__buy:not(:disabled):hover { background: #ff7b2e; }
 .numbers__fineprint { margin: 22px 0 0; color: #a99b8f; font-size: 14px; line-height: 1.5; }
