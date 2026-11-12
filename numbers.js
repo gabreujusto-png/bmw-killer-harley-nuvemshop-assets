@@ -23,6 +23,10 @@
   const apiBase = 'https://storefront-api.tiendanube.com';
   const storeId = 5377099;
   const productId = 379154691;
+  const newPriceCents = 17990;
+  let unitPriceCents = 17900;
+  const formatPrice = (cents) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
+  const paidCountUrl = 'https://raw.githubusercontent.com/gabreujusto-png/bmw-killer-harlao-sales-feed/main/sales.json';
   const pageSize = 50;
   const total = 1000;
   const firstNumber = 0;
@@ -38,6 +42,29 @@
   let variants = null;
   let busy = false;
   let availabilityRequestId = 0;
+
+  async function refreshSalesProgress() {
+    const panel = root.querySelector('.numbers__sales-progress');
+    if (!panel) return;
+    try {
+      const url = `${paidCountUrl}?v=${Math.floor(Date.now() / 300000)}`;
+      const response = await fetch(url, { cache: 'no-store', credentials: 'omit' });
+      if (!response.ok) throw new Error('paid_count_unavailable');
+      const data = await response.json();
+      if (data.total !== total || !Number.isInteger(data.paid) || data.paid < 0 || data.paid > total) {
+        throw new Error('invalid_paid_count');
+      }
+      const percent = data.paid / total * 100;
+      const displayPercent = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(percent);
+      panel.querySelector('.numbers__sales-progress-percent').textContent = `${displayPercent}%`;
+      panel.querySelector('.numbers__sales-progress-track').setAttribute('aria-valuenow', String(percent));
+      panel.querySelector('.numbers__sales-progress-track span').style.width = `${percent}%`;
+      panel.querySelector('.numbers__sales-progress-caption').textContent = `${data.paid} de 1.000 números vendidos com pagamento confirmado.`;
+      panel.hidden = false;
+    } catch (_) {
+      // Sem dados confirmados, a barra fica oculta em vez de mostrar uma estimativa falsa.
+    }
+  }
 
   async function jsonRequest(path, options = {}) {
     const response = await fetch(`${apiBase}${path}`, { credentials: 'omit', ...options });
@@ -59,18 +86,22 @@
       const number = Number(variant.values?.[0]);
       if (!Number.isInteger(number) || number < firstNumber || number > lastNumber ||
           variant.values?.[0] !== formatNumber(number) ||
-          variant.product_id !== productId || Number(variant.price) !== 179 ||
+          variant.product_id !== productId || (![17900, newPriceCents].includes(Math.round(Number(variant.price) * 100))) ||
           variant.promotional_price !== null || variant.stock_management !== true ||
           !Number.isInteger(variant.stock) || variant.stock < 0 || variant.stock > 1 ||
           byNumber.has(number)) throw new Error('invalid_campaign_catalog');
       byNumber.set(number, variant);
     }
     if (byNumber.size !== total) throw new Error('incomplete_campaign_catalog');
+    const hasNewPrice = [...byNumber.values()].some((variant) =>
+      variant.stock === 1 && Math.round(Number(variant.price) * 100) === newPriceCents);
+    unitPriceCents = hasNewPrice ? newPriceCents : 17900;
     return byNumber;
   }
 
   function isAvailable(value) {
-    return !!variants?.get(value) && Number(variants.get(value).stock) > 0;
+    return !!variants?.get(value) && Number(variants.get(value).stock) > 0 &&
+      Math.round(Number(variants.get(value).price) * 100) === unitPriceCents;
   }
 
   function updateSelectedDisplay() {
@@ -88,8 +119,8 @@
     }
     selectedList.replaceChildren(fragment);
     buy.innerHTML = selected.size > 1
-      ? `IR AO CHECKOUT · R$ ${selected.size * 179} ${arrowIcon}`
-      : `COMPRAR BONÉ · R$ 179 ${arrowIcon}`;
+      ? `IR AO CHECKOUT · ${formatPrice(selected.size * unitPriceCents)} ${arrowIcon}`
+      : `COMPRAR BONÉ · ${formatPrice(unitPriceCents)} ${arrowIcon}`;
   }
 
   function updateSelectionMessage() {
@@ -115,18 +146,24 @@
   }
 
   function activateLiveCopy() {
+    const price = formatPrice(unitPriceCents);
+    for (const element of document.querySelectorAll('.hero .eyebrow, .hero__offer strong, .cap-feature__offer strong, .numbers__eyebrow, .numbers__price')) {
+      for (const node of element.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) node.textContent = node.textContent.replace(/R\$\s*179(?:,90|,00)?/g, price);
+      }
+    }
     document.title = 'Boné Harlão do Agro + Harley Iron Harvest | BMW KILLER';
-    document.querySelector('meta[name="description"]').content = 'Compre o boné Harlão do Agro por R$ 179, escolha seu número e concorra à Harley Iron Harvest reconstruída pela BMW Killer.';
-    document.querySelector('.hero__lead').textContent = 'Compre o boné Harlão do Agro por R$ 179, escolha seu número e concorra à Iron Harvest após a confirmação do pagamento na Nuvemshop.';
+    document.querySelector('meta[name="description"]').content = `Compre o boné Harlão do Agro por ${price}, escolha seu número e concorra à Harley Iron Harvest reconstruída pela BMW Killer.`;
+    document.querySelector('.hero__lead').textContent = `Compre o boné Harlão do Agro por ${price}, escolha seu número e concorra à Iron Harvest após a confirmação do pagamento na Nuvemshop.`;
     document.querySelector('.hero__action').firstChild.textContent = 'ESCOLHER BONÉ + NÚMERO ';
     document.querySelector('.hero__availability').textContent = 'NÚMEROS DE 000 A 999 · COMPRA NA NUVEMSHOP';
     root.querySelector('.numbers__heading .section-index').lastChild.textContent = ' ESCOLHA SEU NÚMERO';
-    root.querySelector('.numbers__heading > p:not(.numbers__eyebrow)').textContent = 'Escolha seu número, compre o boné Harlão do Agro por R$ 179 na Nuvemshop e, após o pagamento confirmado, concorra à Harley Iron Harvest.';
+    root.querySelector('.numbers__heading > p:not(.numbers__eyebrow)').textContent = `Escolha seu número, compre o boné Harlão do Agro por ${price} na Nuvemshop e, após o pagamento confirmado, concorra à Harley Iron Harvest.`;
     root.querySelector('.numbers__notice strong').textContent = 'COMPRA NA NUVEMSHOP';
-    root.querySelector('.numbers__notice span').textContent = `${[...variants.values()].filter((variant) => variant.stock === 1).length} de 1000 números disponíveis agora. Os indisponíveis continuam na lista para consulta.`;
+    root.querySelector('.numbers__notice span').textContent = `${[...variants.keys()].filter(isAvailable).length} de 1000 números disponíveis agora. Os indisponíveis continuam na lista para consulta.`;
     root.querySelector('.numbers__steps').setAttribute('aria-label', 'Como participar');
     root.querySelector('.numbers__selection > div:first-child span').textContent = 'NÚMEROS ESCOLHIDOS';
-    root.querySelector('.numbers__steps > div:nth-child(2) span').textContent = 'Boné Harlão do Agro · R$ 179 por boné. A compra paga participa da ação.';
+    root.querySelector('.numbers__steps > div:nth-child(2) span').textContent = `Boné Harlão do Agro · ${price} por boné. A compra paga participa da ação.`;
     root.querySelector('.numbers__steps > div:nth-child(3) span').textContent = 'Finalize o pedido e aguarde a confirmação do pagamento.';
     root.querySelector('.numbers__price small').textContent = 'POR BONÉ · CHECKOUT NUVEMSHOP';
     root.querySelector('.numbers__product-copy > small').textContent = 'O número escolhido aparece como variação do boné no seu pedido.';
@@ -189,10 +226,10 @@
         const matching = lines.filter((line) => line.variant_id === variants.get(number).id);
         const line = matching[0];
         return matching.length === 1 && line?.product_id === productId && line?.quantity === 1 &&
-          line?.variant_values?.[0] === formatNumber(number) && Number(line?.cost?.unit_price) === 179;
+          line?.variant_values?.[0] === formatNumber(number) && Math.round(Number(line?.cost?.unit_price) * 100) === unitPriceCents;
       });
       if (cartWithItems.currency !== 'BRL' || cartWithItems.total_quantity !== numbers.length ||
-          !exactLines || Number(cartWithItems.cost?.total) !== 179 * numbers.length) {
+          !exactLines || Math.round(Number(cartWithItems.cost?.total) * 100) !== unitPriceCents * numbers.length) {
         throw new Error('cart_mismatch');
       }
       const checkout = await jsonRequest(`/unstable/stores/${storeId}/carts/${encodeURIComponent(cart.id)}/checkout`, { method: 'POST' });
@@ -304,10 +341,13 @@
   buy.addEventListener('click', startCheckout);
   if (salesEnabled) {
     refreshAvailability();
+    refreshSalesProgress();
     window.addEventListener('focus', refreshAvailability);
+    window.addEventListener('focus', refreshSalesProgress);
     window.addEventListener('pageshow', refreshAvailability);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshAvailability(); });
     window.setInterval(() => { if (!document.hidden) refreshAvailability(); }, 60000);
+    window.setInterval(() => { if (!document.hidden) refreshSalesProgress(); }, 300000);
   }
 
   setPage(0);

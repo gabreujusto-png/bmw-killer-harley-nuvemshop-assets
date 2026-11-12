@@ -126,3 +126,12 @@
 @media (prefers-reduced-motion: reduce) {
   .hero__action, .numbers__grid button { transition: none; }
 }
+
+.numbers__sales-progress { margin: 38px 0 28px; padding: 20px 22px; border: 1px solid #68412b; background: linear-gradient(110deg, #21140d, #0b0a09); }
+.numbers__sales-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; color: #f4e9de; font-size: 14px; font-weight: 800; letter-spacing: .1em; }
+.numbers__sales-progress-percent { color: var(--orange); font: 400 42px/1 "Bebas Neue", sans-serif; letter-spacing: 0; }
+.numbers__sales-progress-track { overflow: hidden; height: 14px; margin-top: 14px; border: 1px solid #795038; background: #080605; }
+.numbers__sales-progress-track span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #b33a00, #ff5a00 80%, #ff9d45); transition: width .7s ease; }
+.numbers__sales-progress-caption { margin: 12px 0 0; color: #dcc9b8; font-size: 15px; line-height: 1.4; }
+@media (max-width: 540px) { .numbers__sales-progress { padding: 18px 16px; } .numbers__sales-progress-head { font-size: 12px; } .numbers__sales-progress-percent { font-size: 38px; } }
+@media (prefers-reduced-motion: reduce) { .numbers__sales-progress-track span { transition: none; } }
