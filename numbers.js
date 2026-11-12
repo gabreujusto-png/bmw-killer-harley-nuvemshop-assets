@@ -47,7 +47,7 @@
     const panel = root.querySelector('.numbers__sales-progress');
     if (!panel) return;
     try {
-      const url = `${paidCountUrl}?v=${Date.now()}`;
+      const url = `${paidCountUrl}?v=${Math.floor(Date.now() / 300000)}`;
       const response = await fetch(url, { cache: 'no-store', credentials: 'omit' });
       if (!response.ok) throw new Error('paid_count_unavailable');
       const data = await response.json();
@@ -345,15 +345,9 @@
     window.addEventListener('focus', refreshAvailability);
     window.addEventListener('focus', refreshSalesProgress);
     window.addEventListener('pageshow', refreshAvailability);
-    window.addEventListener('pageshow', refreshSalesProgress);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        refreshAvailability();
-        refreshSalesProgress();
-      }
-    });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshAvailability(); });
     window.setInterval(() => { if (!document.hidden) refreshAvailability(); }, 60000);
-    window.setInterval(() => { if (!document.hidden) refreshSalesProgress(); }, 60000);
+    window.setInterval(() => { if (!document.hidden) refreshSalesProgress(); }, 300000);
   }
 
   setPage(0);
