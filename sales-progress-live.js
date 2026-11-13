@@ -1,8 +1,11 @@
 (() => {
   const liveUrl = 'https://bmw-killer-harlao-sales-api.gabreujusto.chatgpt.site/sales';
+  const feedUrl = 'https://raw.githubusercontent.com/gabreujusto-png/bmw-killer-harlao-sales-feed/main/sales.json';
   const cacheKey = 'harlao-paid-confirmed-v1';
   const cacheAgeMs = 10 * 60 * 1000;
   let inFlight = false;
+  let feedInFlight = false;
+  let lastFeedRequest = 0;
   let started = false;
   let lastPaid = null;
 
@@ -38,10 +41,29 @@
     } catch (_) { /* A consulta ao vivo continua funcionando sem armazenamento local. */ }
   }
 
+  async function refreshFeed(panel) {
+    if (feedInFlight || Date.now() - lastFeedRequest < 60000) return;
+    feedInFlight = true;
+    lastFeedRequest = Date.now();
+    try {
+      const response = await fetch(`${feedUrl}?v=${Math.floor(Date.now() / 60000)}`, {
+        cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(15000),
+      });
+      if (!response.ok) throw new Error('feed_unavailable');
+      apply(panel, await response.json());
+    } catch (_) {
+      // A consulta direta ou o último total confirmado continuam disponíveis.
+    } finally {
+      feedInFlight = false;
+    }
+  }
+
   async function refresh() {
     const root = document.querySelector('#numeros[data-sales-enabled="true"]');
     const panel = root?.querySelector('.numbers__sales-progress');
-    if (!panel || inFlight) return;
+    if (!panel) return;
+    refreshFeed(panel);
+    if (inFlight) return;
     inFlight = true;
     try {
       const response = await fetch(liveUrl, { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(75000) });
