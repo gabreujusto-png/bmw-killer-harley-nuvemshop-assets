@@ -1,6 +1,6 @@
 (() => {
   const liveUrl = 'https://bmw-killer-harlao-sales-api.gabreujusto.chatgpt.site/sales';
-  const fallbackUrl = 'https://raw.githubusercontent.com/gabreujusto-png/bmw-killer-harlao-sales-feed/main/sales.json';
+  const feedUrl = 'https://raw.githubusercontent.com/gabreujusto-png/bmw-killer-harlao-sales-feed/main/sales.json';
   let request = 0;
   let started = false;
   let lastPaid = null;
@@ -9,58 +9,54 @@
     return `${paid} de 1.000 bonés vendidos com pagamento confirmado.`;
   }
 
+  function render(panel) {
+    if (lastPaid === null) return;
+    const track = panel.querySelector('.numbers__sales-progress-track');
+    const amount = panel.querySelector('.numbers__sales-progress-percent');
+    const caption = panel.querySelector('.numbers__sales-progress-caption');
+    const fill = track?.querySelector('span');
+    if (!track || !fill || !amount || !caption) return;
+    const percent = lastPaid / 10;
+    const percentText = `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(percent)}%`;
+    if (amount.textContent !== percentText) amount.textContent = percentText;
+    if (track.getAttribute('aria-valuenow') !== String(percent)) track.setAttribute('aria-valuenow', String(percent));
+    if (fill.style.width !== `${percent}%`) fill.style.width = `${percent}%`;
+    if (caption.textContent !== captionFor(lastPaid)) caption.textContent = captionFor(lastPaid);
+    if (panel.hidden) panel.hidden = false;
+  }
+
+  function apply(panel, data, current, source) {
+    if (current !== request || data.total !== 1000 || !Number.isInteger(data.paid) ||
+        data.paid < 0 || data.paid > 1000) return;
+    // O feed pode estar alguns minutos atrás da consulta direta.
+    if (source === 'feed' && lastPaid !== null && data.paid < lastPaid) return;
+    lastPaid = data.paid;
+    render(panel);
+  }
+
   async function refresh() {
     const root = document.querySelector('#numeros[data-sales-enabled="true"]');
     const panel = root?.querySelector('.numbers__sales-progress');
     if (!panel) return;
     const current = ++request;
-    try {
-      let response;
-      try {
-        response = await fetch(liveUrl, { cache: 'no-store', credentials: 'omit' });
-        if (!response.ok) throw new Error('live_sales_unavailable');
-      } catch (_) {
-        response = await fetch(`${fallbackUrl}?v=${Date.now()}`, { cache: 'no-store', credentials: 'omit' });
-      }
-      if (!response.ok) return;
-      const data = await response.json();
-      if (current !== request || data.total !== 1000 || !Number.isInteger(data.paid) ||
-          data.paid < 0 || data.paid > 1000) return;
-      const percent = data.paid / 10;
-      const track = panel.querySelector('.numbers__sales-progress-track');
-      const amount = panel.querySelector('.numbers__sales-progress-percent');
-      const caption = panel.querySelector('.numbers__sales-progress-caption');
-      const fill = track?.querySelector('span');
-      if (!track || !fill || !amount || !caption) return;
-      amount.textContent = `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(percent)}%`;
-      track.setAttribute('aria-valuenow', String(percent));
-      fill.style.width = `${percent}%`;
-      lastPaid = data.paid;
-      caption.textContent = captionFor(data.paid);
-      panel.hidden = false;
-    } catch (_) {
-      // Mantém o último total confirmado se a consulta falhar.
-    }
+    const feed = fetch(`${feedUrl}?v=${Date.now()}`, { cache: 'no-store', credentials: 'omit' })
+      .then((response) => { if (!response.ok) throw new Error('feed_unavailable'); return response.json(); })
+      .then((data) => apply(panel, data, current, 'feed'))
+      .catch(() => {});
+    const live = fetch(liveUrl, { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(45000) })
+      .then((response) => { if (!response.ok) throw new Error('live_unavailable'); return response.json(); })
+      .then((data) => apply(panel, data, current, 'live'))
+      .catch(() => {});
+    await Promise.all([feed, live]);
   }
 
   function start() {
     const panel = document.querySelector('#numeros[data-sales-enabled="true"] .numbers__sales-progress');
     if (started || !panel) return false;
     started = true;
-    const caption = panel.querySelector('.numbers__sales-progress-caption');
-    if (caption) {
-      const initialPaid = Number.parseInt(caption.textContent, 10);
-      if (Number.isInteger(initialPaid)) {
-        lastPaid = initialPaid;
-        caption.textContent = captionFor(initialPaid);
-      }
-      const captionObserver = new MutationObserver(() => {
-        if (lastPaid !== null && caption.textContent !== captionFor(lastPaid)) {
-          caption.textContent = captionFor(lastPaid);
-        }
-      });
-      captionObserver.observe(caption, { childList: true, characterData: true, subtree: true });
-    }
+    // O zero no HTML é apenas um marcador de carregamento, não uma venda confirmada.
+    const observer = new MutationObserver(() => render(panel));
+    observer.observe(panel, { childList: true, characterData: true, attributes: true, subtree: true });
     refresh();
     window.addEventListener('focus', refresh);
     window.addEventListener('pageshow', refresh);
