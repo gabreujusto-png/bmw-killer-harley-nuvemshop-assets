@@ -1,7 +1,8 @@
 (() => {
   const liveUrl = 'https://bmw-killer-harlao-sales-api.gabreujusto.chatgpt.site/sales';
-  const feedUrl = 'https://raw.githubusercontent.com/gabreujusto-png/bmw-killer-harlao-sales-feed/main/sales.json';
-  let request = 0;
+  const cacheKey = 'harlao-paid-confirmed-v1';
+  const cacheAgeMs = 10 * 60 * 1000;
+  let inFlight = false;
   let started = false;
   let lastPaid = null;
 
@@ -25,29 +26,32 @@
     if (panel.hidden) panel.hidden = false;
   }
 
-  function apply(panel, data, current, source) {
-    if (current !== request || data.total !== 1000 || !Number.isInteger(data.paid) ||
+  function apply(panel, data) {
+    if (data.total !== 1000 || !Number.isInteger(data.paid) ||
         data.paid < 0 || data.paid > 1000) return;
-    // O feed pode estar alguns minutos atrás da consulta direta.
-    if (source === 'feed' && lastPaid !== null && data.paid < lastPaid) return;
+    // Uma resposta antiga de outra instância não pode fazer a barra recuar.
+    if (lastPaid !== null && data.paid < lastPaid) return;
     lastPaid = data.paid;
     render(panel);
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({ paid: lastPaid, savedAt: Date.now() }));
+    } catch (_) { /* A consulta ao vivo continua funcionando sem armazenamento local. */ }
   }
 
   async function refresh() {
     const root = document.querySelector('#numeros[data-sales-enabled="true"]');
     const panel = root?.querySelector('.numbers__sales-progress');
-    if (!panel) return;
-    const current = ++request;
-    const feed = fetch(`${feedUrl}?v=${Date.now()}`, { cache: 'no-store', credentials: 'omit' })
-      .then((response) => { if (!response.ok) throw new Error('feed_unavailable'); return response.json(); })
-      .then((data) => apply(panel, data, current, 'feed'))
-      .catch(() => {});
-    const live = fetch(liveUrl, { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(45000) })
-      .then((response) => { if (!response.ok) throw new Error('live_unavailable'); return response.json(); })
-      .then((data) => apply(panel, data, current, 'live'))
-      .catch(() => {});
-    await Promise.all([feed, live]);
+    if (!panel || inFlight) return;
+    inFlight = true;
+    try {
+      const response = await fetch(liveUrl, { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(75000) });
+      if (!response.ok) throw new Error('live_unavailable');
+      apply(panel, await response.json());
+    } catch (_) {
+      // Mantém o último número confirmado; nunca troca por zero quando a rede falha.
+    } finally {
+      inFlight = false;
+    }
   }
 
   function start() {
@@ -55,6 +59,14 @@
     if (started || !panel) return false;
     started = true;
     // O zero no HTML é apenas um marcador de carregamento, não uma venda confirmada.
+    try {
+      const saved = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+      if (saved && Number.isInteger(saved.paid) && saved.paid >= 0 && saved.paid <= 1000 &&
+          Number.isFinite(saved.savedAt) && Date.now() - saved.savedAt < cacheAgeMs) {
+        lastPaid = saved.paid;
+        render(panel);
+      }
+    } catch (_) { /* A consulta ao vivo preenche a barra. */ }
     const observer = new MutationObserver(() => render(panel));
     observer.observe(panel, { childList: true, characterData: true, attributes: true, subtree: true });
     refresh();

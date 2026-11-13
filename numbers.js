@@ -26,7 +26,6 @@
   const newPriceCents = 17990;
   let unitPriceCents = 17900;
   const formatPrice = (cents) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
-  const paidCountUrl = 'https://raw.githubusercontent.com/gabreujusto-png/bmw-killer-harlao-sales-feed/main/sales.json';
   const pageSize = 50;
   const total = 1000;
   const firstNumber = 0;
@@ -42,29 +41,6 @@
   let variants = null;
   let busy = false;
   let availabilityRequestId = 0;
-
-  async function refreshSalesProgress() {
-    const panel = root.querySelector('.numbers__sales-progress');
-    if (!panel) return;
-    try {
-      const url = `${paidCountUrl}?v=${Math.floor(Date.now() / 300000)}`;
-      const response = await fetch(url, { cache: 'no-store', credentials: 'omit' });
-      if (!response.ok) throw new Error('paid_count_unavailable');
-      const data = await response.json();
-      if (data.total !== total || !Number.isInteger(data.paid) || data.paid < 0 || data.paid > total) {
-        throw new Error('invalid_paid_count');
-      }
-      const percent = data.paid / total * 100;
-      const displayPercent = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(percent);
-      panel.querySelector('.numbers__sales-progress-percent').textContent = `${displayPercent}%`;
-      panel.querySelector('.numbers__sales-progress-track').setAttribute('aria-valuenow', String(percent));
-      panel.querySelector('.numbers__sales-progress-track span').style.width = `${percent}%`;
-      panel.querySelector('.numbers__sales-progress-caption').textContent = `${data.paid} de 1.000 números vendidos com pagamento confirmado.`;
-      panel.hidden = false;
-    } catch (_) {
-      // Sem dados confirmados, a barra fica oculta em vez de mostrar uma estimativa falsa.
-    }
-  }
 
   async function jsonRequest(path, options = {}) {
     const response = await fetch(`${apiBase}${path}`, { credentials: 'omit', ...options });
@@ -341,13 +317,10 @@
   buy.addEventListener('click', startCheckout);
   if (salesEnabled) {
     refreshAvailability();
-    refreshSalesProgress();
     window.addEventListener('focus', refreshAvailability);
-    window.addEventListener('focus', refreshSalesProgress);
     window.addEventListener('pageshow', refreshAvailability);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshAvailability(); });
     window.setInterval(() => { if (!document.hidden) refreshAvailability(); }, 60000);
-    window.setInterval(() => { if (!document.hidden) refreshSalesProgress(); }, 300000);
   }
 
   setPage(0);
